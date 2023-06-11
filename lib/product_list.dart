@@ -175,9 +175,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         ),
                       ));
                 }),
-          )
+
+          ),
         ],
       ),
     );
   }
 }
+
+
