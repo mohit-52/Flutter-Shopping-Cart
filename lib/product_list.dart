@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shopping_cart/cart_model.dart';
+import 'package:shopping_cart/cart_provider.dart';
+import 'package:shopping_cart/cart_screen.dart';
+import 'package:shopping_cart/db_helper.dart';
+import 'package:badges/badges.dart' as badge;
 
 class ProductListScreen extends StatefulWidget {
   const ProductListScreen({Key? key}) : super(key: key);
@@ -8,6 +14,8 @@ class ProductListScreen extends StatefulWidget {
 }
 
 class _ProductListScreenState extends State<ProductListScreen> {
+  DBHelper? dbHelper = DBHelper();
+
   List<String> productName = [
     'Mango',
     'Orange',
@@ -39,16 +47,28 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cart = Provider.of<CartProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Product List"),
         centerTitle: true,
-        actions: const [
-          Center(
-            child: Badge(
-              label: Text('0'),
-              child: Icon(Icons.shopping_bag),
-            ),
+        actions: [
+          InkWell(
+            onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CartScreen()));
+            },
+            child: Center(
+                child: badge.Badge(
+                  badgeContent: Consumer<CartProvider>(
+                    builder: (context, value, child) {
+                      return Text(
+                        value.getCounter().toString(),
+                        style: TextStyle(color: Colors.white),
+                      );
+                    },
+                  ),
+                  child: Icon(Icons.shopping_bag),
+                )),
           ),
           SizedBox(
             width: 20,
@@ -63,73 +83,97 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 itemBuilder: (context, index) {
                   return Card(
                       child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Row(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.max,
                           children: [
-                            Image(
-                              height: 100,
-                              width: 100,
-                              image:
+                            Row(
+                              children: [
+                                Image(
+                                  height: 100,
+                                  width: 100,
+                                  image:
                                   NetworkImage(productImage[index].toString()),
-                              fit: BoxFit.fill,
-                            ),
-                            const SizedBox(
-                              width: 20,
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    productName[index].toString(),
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 5,
-                                  ),
-                                  Text(
-                                    "${productUnit[index]} \$${productPrice[index]}",
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 5,
-                                  ),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Container(
-                                      height: 35,
-                                      width: 100,
-                                      decoration: BoxDecoration(
-                                          color: Colors.green,
-                                          borderRadius:
-                                              BorderRadius.circular(5)),
-                                      child: const Center(
-                                        child: Text(
-                                          "Add to Cart",
-                                          style: TextStyle(color: Colors.white),
+                                  fit: BoxFit.fill,
+                                ),
+                                const SizedBox(
+                                  width: 20,
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment
+                                        .start,
+                                    children: [
+                                      Text(
+                                        productName[index].toString(),
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
-                                    ),
-                                  )
-                                ],
-                              ),
+                                      const SizedBox(
+                                        height: 5,
+                                      ),
+                                      Text(
+                                        "${productUnit[index]} \$${productPrice[index]}",
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 5,
+                                      ),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: InkWell(
+                                          onTap: () {
+                                            dbHelper!
+                                                .insert(Cart(
+                                                id: index,
+                                                productId: index.toString(),
+                                                productName: productName[index].toString(),
+                                                productPrize: productPrice[index],
+                                                initialPrice: productPrice[index],
+                                                quantity: 1,
+                                                unitTag: productUnit[index],
+                                                image: productImage[index].toString()))
+                                                .then((value) {
+                                              print("Product is added to cart");
+                                              cart.addTotalPrize(double.parse(
+                                                  productPrice[index].toString()));
+                                              cart.addCounter();
+                                            }).onError((error, stackTrace) {
+                                              print("$error!, Product not added to cart");
+                                            });
+                                          },
+                                          child: Container(
+                                            height: 35,
+                                            width: 100,
+                                            decoration: BoxDecoration(
+                                                color: Colors.green,
+                                                borderRadius:
+                                                BorderRadius.circular(5)),
+                                            child: const Center(
+                                              child: Text(
+                                                "Add to Cart",
+                                                style:
+                                                TextStyle(color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                )
+                              ],
                             )
                           ],
-                        )
-                      ],
-                    ),
-                  ));
+                        ),
+                      ));
                 }),
           )
         ],
