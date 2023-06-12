@@ -1,76 +1,75 @@
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shopping_cart/db_helper.dart';
 
 import 'cart_model.dart';
+import 'db_helper.dart';
 
 class CartProvider with ChangeNotifier{
 
-  int _counter = 0;
+  DBHelper db = DBHelper() ;
+  int _counter = 0 ;
   int get counter => _counter;
 
-  double _totalPrize = 0.0;
-  double get totalPrize => _totalPrize;
+  double _totalPrice = 0.0 ;
+  double get totalPrice => _totalPrice;
 
+  late Future<List<Cart>> _cart ;
+  Future<List<Cart>> get cart => _cart ;
 
-  DBHelper db = DBHelper();
-  late Future<List<Cart>> _cart;
-  Future<List<Cart>> get cart => _cart;
-
-  Future<List<Cart>> getData() async {
+  Future<List<Cart>> getData () async {
     _cart = db.getCartList();
-    return _cart;
+    return _cart ;
   }
 
 
-
-  void _setPrefsItems() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+  void _setPrefItems()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance() ;
     prefs.setInt('cart_item', _counter);
-    prefs.setDouble('total_prize', _totalPrize);
+    prefs.setDouble('total_price', _totalPrice);
     notifyListeners();
   }
 
-  void _getPrefsItems() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+  void _getPrefItems()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance() ;
     _counter = prefs.getInt('cart_item') ?? 0;
-    _totalPrize = prefs.getDouble('total_prize') ?? 0;
+    _totalPrice = prefs.getDouble('total_price') ?? 0.0;
     notifyListeners();
   }
 
-  void addCounter() {
+
+  void addTotalPrice (double productPrice){
+    _totalPrice = _totalPrice +productPrice ;
+    _setPrefItems();
+    notifyListeners();
+  }
+
+  void removeTotalPrice (double productPrice){
+    _totalPrice = _totalPrice  - productPrice ;
+    _setPrefItems();
+    notifyListeners();
+  }
+
+  double getTotalPrice (){
+    _getPrefItems();
+    return  _totalPrice ;
+  }
+
+
+  void addCounter (){
     _counter++;
-    _setPrefsItems();
+    _setPrefItems();
     notifyListeners();
   }
 
-  void removeCounter() {
+  void removerCounter (){
     _counter--;
-    _setPrefsItems();
+    _setPrefItems();
     notifyListeners();
   }
 
-  int getCounter() {
-    _getPrefsItems();
-    return _counter;
+  int getCounter (){
+    _getPrefItems();
+    return  _counter ;
+
   }
-
-
-  void addTotalPrize( double productPrize) {
-    _totalPrize = _totalPrize + productPrize;
-    _setPrefsItems();
-    notifyListeners();
-  }
-
-  void removeTotalPrize( double productPrize) {
-    _totalPrize = _totalPrize - productPrize;
-    _setPrefsItems();
-    notifyListeners();
-  }
-
-  double getTotalPrize() {
-    _getPrefsItems();
-    return _totalPrize;
-  }
-
 }
