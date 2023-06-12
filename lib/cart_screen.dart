@@ -56,7 +56,7 @@ class _CartScreenState extends State<CartScreen> {
                         child: Column(
                           children: [
                             Image(
-                              image: AssetImage('images/empty_cart.png'),
+                              image: AssetImage('images/empty_cart.avif'),
                             ),
                             SizedBox(height: 20,),
                             Text('Your cart is empty 😌' ,style: Theme.of(context).textTheme.headline5),
